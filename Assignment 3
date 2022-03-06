@@ -1,0 +1,95 @@
+library(caret)
+Loading required package: ggplot2
+Loading required package: lattice
+> library(class)
+> library(ISLR)
+> DF=UniversalBank
+> summary(DF)
+
+       ID            Age          Experience       Income          ZIP.Code         Family     
+ Min.   :   1   Min.   :23.00   Min.   :-3.0   Min.   :  8.00   Min.   : 9307   Min.   :1.000  
+ 1st Qu.:1251   1st Qu.:35.00   1st Qu.:10.0   1st Qu.: 39.00   1st Qu.:91911   1st Qu.:1.000  
+ Median :2500   Median :45.00   Median :20.0   Median : 64.00   Median :93437   Median :2.000  
+ Mean   :2500   Mean   :45.34   Mean   :20.1   Mean   : 73.77   Mean   :93152   Mean   :2.396  
+ 3rd Qu.:3750   3rd Qu.:55.00   3rd Qu.:30.0   3rd Qu.: 98.00   3rd Qu.:94608   3rd Qu.:3.000  
+ Max.   :5000   Max.   :67.00   Max.   :43.0   Max.   :224.00   Max.   :96651   Max.   :4.000  
+     CCAvg          Education        Mortgage     Personal.Loan   Securities.Account   CD.Account    
+ Min.   : 0.000   Min.   :1.000   Min.   :  0.0   Min.   :0.000   Min.   :0.0000     Min.   :0.0000  
+ 1st Qu.: 0.700   1st Qu.:1.000   1st Qu.:  0.0   1st Qu.:0.000   1st Qu.:0.0000     1st Qu.:0.0000  
+ Median : 1.500   Median :2.000   Median :  0.0   Median :0.000   Median :0.0000     Median :0.0000  
+ Mean   : 1.938   Mean   :1.881   Mean   : 56.5   Mean   :0.096   Mean   :0.1044     Mean   :0.0604  
+ 3rd Qu.: 2.500   3rd Qu.:3.000   3rd Qu.:101.0   3rd Qu.:0.000   3rd Qu.:0.0000     3rd Qu.:0.0000  
+ Max.   :10.000   Max.   :3.000   Max.   :635.0   Max.   :1.000   Max.   :1.0000     Max.   :1.0000  
+     Online         CreditCard   
+ Min.   :0.0000   Min.   :0.000  
+ 1st Qu.:0.0000   1st Qu.:0.000  
+ Median :1.0000   Median :0.000  
+ Mean   :0.5968   Mean   :0.294  
+ 3rd Qu.:1.0000   3rd Qu.:1.000  
+ Max.   :1.0000   Max.   :1.000  
+
+ #Task 1
+> Train_Index = createDataPartition(DF$Personal.Loan,p=0.6, list=FALSE) # 60% reserved for Train
+> Train.df=DF[Train_Index,]
+> Validation.df=DF[-Train_Index,]
+> mytable <- xtabs(~ Online+CreditCard+Personal.Loan, data=Train.df)
+> ftable(mytable) 
+                  Personal.Loan    0    1
+Online CreditCard                        
+0      0                         798   79
+       1                         306   41
+1      0                        1113  120
+       1                         500   43
+#Task 3
+> table(Online=Train.df$Online, Personal.Loan=Train.df$Personal.Loan)
+      Personal.Loan
+Online    0    1
+     0 1104  120
+     1 1613  163
+
+> table(CreditCard=Train.df$CreditCard, Personal.Loan=Train.df$Personal.Loan)
+          Personal.Loan
+CreditCard    0    1
+         0 1911  199
+         1  806   84
+
+ #Task4
+
+> #P(CC = 1 | Loan = 1) (the proportion of credit card holders among the loan acceptors) 
+> 88/(792+88) 
+[1] 0.1
+
+> # P(Online = 1 | Loan = 1)  
+> 171/(1600+171)
+[1] 0.09655562
+
+> # P(Loan = 1) (the proportion of loan acceptors)  
+> sum(81,36,119,52)/sum(784,81,328,36,1136,119,464,52)
+[1] 0.096
+
+> #P(CC = 1 | Loan = 0)  
+> 792/(792+88)
+[1] 0.9
+
+> #P(Online = 1 | Loan = 0) 
+> 1136/(1136+119)
+[1] 0.9051793
+
+> # P(Loan = 0) 
+> sum(784,328,1136,464)/sum(784,81,328,36,1136,119,464,52)
+[1] 0.904
+
+ #Task 5
+> (.1*0.09655562*.096)/ ((1*0.09655562*.096) + (.9*0.9051793*.904))
+[1] 0.001243
+
+#Task 6
+#My values are very different. But I think that the task 4 answer remains more relative to the data set.
+
+#Task 7
+> library(e1071)
+> nb.model<-naiveBayes (Personal.Loan~Online+CreditCard, data=Train.df)
+> To_Predict=data.frame(Online='1', CreditCard='1')
+> predict(nb.model,To_Predict,type='raw')
+             0          1
+[1,] 0.9056667 0.09433333
